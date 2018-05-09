@@ -36,15 +36,7 @@ object CallGraph {
 
   type Edge = String
 
-  @datatype trait Node
-
-  object Node {
-
-    @datatype class Var(isInObject: B, owner: QName, id: String) extends Node
-
-    @datatype class Method(isInObject: B, owner: QName, id: String) extends Node
-
-  }
+  @datatype class Node(isInObject: B, isVar: B, owner: QName, id: String)
 
   type Type = Graph[Node, Edge]
 
@@ -56,12 +48,12 @@ object CallGraph {
     }
 
     override def preResolvedInfoMethod(o: AST.ResolvedInfo.Method): AST.MTransformer.PreResult[AST.ResolvedInfo] = {
-      g = g + context ~> Node.Method(o.isInObject, o.owner, o.id)
+      g = g + context ~> Node(o.isInObject, F, o.owner, o.id)
       return super.preResolvedInfoMethod(o)
     }
 
     override def preResolvedInfoVar(o: AST.ResolvedInfo.Var): AST.MTransformer.PreResult[AST.ResolvedInfo] = {
-      g = g + context ~> Node.Var(o.isInObject, o.owner, o.id)
+      g = g + context ~> Node(o.isInObject, T, o.owner, o.id)
       return super.preResolvedInfoVar(o)
     }
   }
@@ -71,7 +63,7 @@ object CallGraph {
 
     def buildConstructor(resOpt: Option[AST.ResolvedInfo], stmts: ISZ[AST.Stmt]): Unit = {
       val node: Node = resOpt match {
-        case Some(res: AST.ResolvedInfo.Method) => Node.Method(res.isInObject, res.owner, res.id)
+        case Some(res: AST.ResolvedInfo.Method) => Node(res.isInObject, F, res.owner, res.id)
         case _ => halt("Infeasible")
       }
       var stmts = ISZ[AST.Stmt]()
@@ -130,8 +122,8 @@ object CallGraph {
     if (m.bodyOpt.isEmpty) {
       return g
     }
-    val node: Node.Method = m.attr.resOpt match {
-      case Some(res: AST.ResolvedInfo.Method) => Node.Method(res.isInObject, res.owner, res.id)
+    val node: Node = m.attr.resOpt match {
+      case Some(res: AST.ResolvedInfo.Method) => Node(res.isInObject, F, res.owner, res.id)
       case _ => halt("Infeasible")
     }
     return buildStmts(g, node, m.bodyOpt.get.stmts)
@@ -157,7 +149,7 @@ object CallGraph {
           case _ => halt("Infeasible")
         }
         val supMRes: Node = supMResOpt match {
-          case res: AST.ResolvedInfo.Method => Node.Method(res.isInObject, res.owner, res.id)
+          case res: AST.ResolvedInfo.Method => Node(res.isInObject, F, res.owner, res.id)
           case _ => halt("Infeasible")
         }
         vars.get(id) match {
@@ -166,13 +158,13 @@ object CallGraph {
               case Some(res: AST.ResolvedInfo.Var) => res
               case _ => halt("Infeasible")
             }
-            r = r.addParents(Node.Var(vRes.isInObject, vRes.owner, vRes.id), ISZ(supMRes))
+            r = r.addParents(Node(vRes.isInObject, T, vRes.owner, vRes.id), ISZ(supMRes))
           case _ =>
             methods.get(id) match {
               case Some(m) =>
                 m.resOpt match {
                   case Some(mRes: AST.ResolvedInfo.Method) =>
-                    r = r.addParents(Node.Method(mRes.isInObject, mRes.owner, mRes.id), ISZ(supMRes))
+                    r = r.addParents(Node(mRes.isInObject, F, mRes.owner, mRes.id), ISZ(supMRes))
                   case _ => halt("Infeasible")
                 }
               case _ =>
