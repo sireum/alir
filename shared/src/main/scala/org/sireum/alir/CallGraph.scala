@@ -29,6 +29,7 @@ package org.sireum.alir
 import org.sireum._
 import org.sireum.lang.{ast => AST}
 import org.sireum.lang.symbol._
+import org.sireum.lang.symbol.Resolver._
 import org.sireum.lang.tipe.TypeHierarchy
 
 object CallGraph {
@@ -39,9 +40,9 @@ object CallGraph {
 
   object Node {
 
-    @datatype class Var(value: AST.ResolvedInfo.Var) extends Node
+    @datatype class Var(isInObject: B, owner: QName, id: String) extends Node
 
-    @datatype class Method(value: AST.ResolvedInfo.Method) extends Node
+    @datatype class Method(isInObject: B, owner: QName, id: String) extends Node
 
   }
 
@@ -55,12 +56,12 @@ object CallGraph {
     }
 
     override def preResolvedInfoMethod(o: AST.ResolvedInfo.Method): AST.MTransformer.PreResult[AST.ResolvedInfo] = {
-      g = g + context ~> Node.Method(o)
+      g = g + context ~> Node.Method(o.isInObject, o.owner, o.id)
       return super.preResolvedInfoMethod(o)
     }
 
     override def preResolvedInfoVar(o: AST.ResolvedInfo.Var): AST.MTransformer.PreResult[AST.ResolvedInfo] = {
-      g = g + context ~> Node.Var(o)
+      g = g + context ~> Node.Var(o.isInObject, o.owner, o.id)
       return super.preResolvedInfoVar(o)
     }
   }
@@ -70,7 +71,7 @@ object CallGraph {
 
     def buildConstructor(resOpt: Option[AST.ResolvedInfo], stmts: ISZ[AST.Stmt]): Unit = {
       val node: Node = resOpt match {
-        case Some(res: AST.ResolvedInfo.Method) => Node.Method(res)
+        case Some(res: AST.ResolvedInfo.Method) => Node.Method(res.isInObject, res.owner, res.id)
         case _ => halt("Infeasible")
       }
       var stmts = ISZ[AST.Stmt]()
@@ -130,7 +131,7 @@ object CallGraph {
       return g
     }
     val node: Node.Method = m.attr.resOpt match {
-      case Some(res: AST.ResolvedInfo.Method) => Node.Method(res)
+      case Some(res: AST.ResolvedInfo.Method) => Node.Method(res.isInObject, res.owner, res.id)
       case _ => halt("Infeasible")
     }
     return buildStmts(g, node, m.bodyOpt.get.stmts)
@@ -141,9 +142,9 @@ object CallGraph {
     for (info <- th.typeMap.values) {
       val (refinements, methods, vars): (
         HashMap[String, TypeInfo.Name],
-          HashMap[String, Info.Method],
-          HashMap[String, Info.Var]
-        ) = info match {
+        HashMap[String, Info.Method],
+        HashMap[String, Info.Var]
+      ) = info match {
         case info: TypeInfo.Sig => (info.refinements, info.methods, HashMap.empty)
         case info: TypeInfo.AbstractDatatype => (info.refinements, info.methods, info.vars)
         case _ => (HashMap.empty, HashMap.empty, HashMap.empty)
@@ -156,7 +157,7 @@ object CallGraph {
           case _ => halt("Infeasible")
         }
         val supMRes: Node = supMResOpt match {
-          case res: AST.ResolvedInfo.Method => Node.Method(res)
+          case res: AST.ResolvedInfo.Method => Node.Method(res.isInObject, res.owner, res.id)
           case _ => halt("Infeasible")
         }
         vars.get(id) match {
@@ -165,13 +166,13 @@ object CallGraph {
               case Some(res: AST.ResolvedInfo.Var) => res
               case _ => halt("Infeasible")
             }
-            r = r.addParents(Node.Var(vRes), ISZ(supMRes))
+            r = r.addParents(Node.Var(vRes.isInObject, vRes.owner, vRes.id), ISZ(supMRes))
           case _ =>
             methods.get(id) match {
               case Some(m) =>
                 m.resOpt match {
                   case Some(mRes: AST.ResolvedInfo.Method) =>
-                    r = r.addParents(Node.Method(mRes), ISZ(supMRes))
+                    r = r.addParents(Node.Method(mRes.isInObject, mRes.owner, mRes.id), ISZ(supMRes))
                   case _ => halt("Infeasible")
                 }
               case _ =>
