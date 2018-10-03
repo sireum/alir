@@ -66,15 +66,15 @@ object CallGraph {
         case Some(res: AST.ResolvedInfo.Method) => Node(res.isInObject, F, res.owner, res.id)
         case _ => halt("Infeasible")
       }
-      var stmts = ISZ[AST.Stmt]()
+      var cStmts = ISZ[AST.Stmt]()
       for (stmt <- stmts) {
         stmt match {
-          case stmt: AST.Stmt.Var => stmts = stmts :+ stmt
-          case stmt: AST.Stmt.Expr => stmts = stmts :+ stmt
+          case stmt: AST.Stmt.Var => cStmts = cStmts :+ stmt
+          case stmt: AST.Stmt.Expr => cStmts = cStmts :+ stmt
           case _ =>
         }
       }
-      r = buildStmts(r, node, stmts)
+      r = buildStmts(r, node, cStmts)
     }
 
     for (info <- th.nameMap.values) {
@@ -153,7 +153,7 @@ object CallGraph {
           case _ => halt("Infeasible")
         }
         vars.get(id) match {
-          case Some(v: Info.Var) =>
+          case Some(v) =>
             val vRes: AST.ResolvedInfo.Var = v.resOpt match {
               case Some(res: AST.ResolvedInfo.Var) => res
               case _ => halt("Infeasible")
