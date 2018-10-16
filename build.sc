@@ -32,49 +32,49 @@ object runtime extends mill.Module {
 
   object macros extends Runtime.Module.Macros
 
-  object library extends Runtime.Module.Library {
+  object test extends Runtime.Module.Test {
+    override def macrosObject = macros
+  }
 
-    final override def macrosObject = macros
+  trait testProvider extends Runtime.Module.TestProvider {
+    override def testObject = test
+  }
 
+  object library extends Runtime.Module.Library with testProvider {
+    override def macrosObject = macros
   }
 
 }
 
 object slang extends mill.Module {
 
-  object ast extends Slang.Module.Ast {
-
-    override val libraryObject = runtime.library
-
+  object ast extends Slang.Module.Ast with runtime.testProvider {
+    final override def libraryObject = runtime.library
   }
 
-  object parser extends Slang.Module.Parser {
-
-    final override val astObject = ast
-
-  }
-
-
-  object tipe extends Slang.Module.Tipe {
-
+  object parser extends Slang.Module.Parser with runtime.testProvider {
     final override def astObject = ast
-
   }
 
-  object frontend extends Slang.Module.FrontEnd {
+  object tipe extends Slang.Module.Tipe with runtime.testProvider {
+    final override def astObject = ast
+    final override def testObject = runtime.test
+  }
 
+  object frontend extends Slang.Module.FrontEnd with runtime.testProvider {
     final override def parserObject = parser
-
     final override def tipeObject = tipe
-
   }
 
 }
 
-object alir extends Alir.Module {
+object alir extends Alir.Module with runtime.testProvider {
 
   final override def millSourcePath = super.millSourcePath / up
+  final override def frontEndObject = slang.frontend
 
-  override val frontEndObject = slang.frontend
+}
 
+def jitPack(owner: String, repo: String, lib: String = "") = T.command {
+  org.sireum.mill.SireumModule.jitPack(owner, repo, if ("" == lib) repo else lib)
 }

@@ -28,7 +28,15 @@ import mill.scalalib._
 import ammonite.ops.up
 import org.sireum.mill.SireumModule._
 
-trait Module extends CrossJvmJs {
+trait Module extends CrossSharedJsJitPack {
+
+  final override def subUrl: String = "alir"
+
+  final override def developers = Seq(Developers.robby)
+
+  final override def description: String = "Sireum Flow Analysis"
+
+  final override def artifactName = "alir"
 
   final override def jvmDeps = Seq()
 
@@ -36,7 +44,12 @@ trait Module extends CrossJvmJs {
 
   final override def scalacPluginIvyDeps = Agg(ivy"org.sireum::scalac-plugin:$scalacPluginVersion")
 
-  final override def testIvyDeps = Agg(ivy"org.scalatest::scalatest::$scalaTestVersion")
+  final override def testDeps =
+    if (isSourceDep) Seq(testObject.shared) else Seq()
+
+  final override def testIvyDeps =
+    if (isSourceDep) Agg.empty
+    else Agg(jpLatest(isCross = true, "sireum", "runtime", "test"))
 
   final override def jvmTestIvyDeps = Agg.empty
 
@@ -48,9 +61,14 @@ trait Module extends CrossJvmJs {
 
   final override def jsTestFrameworks = jvmTestFrameworks
 
-  final override def ivyDeps = Agg.empty
+  final override def ivyDeps =
+    if (isSourceDep) Agg.empty
+    else Agg(jpLatest(isCross = true, "sireum", "slang", "frontend"))
 
-  final override def deps = Seq(frontEndObject)
+  final override def deps =
+    if (isSourceDep) Seq(frontEndObject) else Seq()
 
-  def frontEndObject: CrossJvmJs
+  def frontEndObject: CrossJvmJsPublish
+
+  def testObject: CrossJvmJsPublish
 }
