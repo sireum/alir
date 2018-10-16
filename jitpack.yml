@@ -5,6 +5,5 @@ before_install:
 install:
   - ./mill-standalone all alir.shared.m2 alir.js.m2
   - mkdir -p ~/.m2/repository
-  - cp -Rv out/tools/shared/m2/dest/* ~/.m2/repository/
-  - cp -Rv out/tools/jvm/m2/dest/* ~/.m2/repository/
-  - cp -Rv out/tools/js/m2/dest/* ~/.m2/repository/
+  - cp -Rv out/alir/shared/m2/dest/* ~/.m2/repository/
+  - cp -Rv out/alir/jvm/m2/dest/* ~/.m2/repository/
