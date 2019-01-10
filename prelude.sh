@@ -2,11 +2,11 @@
 export SCRIPT_HOME=$( cd "$( dirname "$0" )" &> /dev/null && pwd )
 cd ${SCRIPT_HOME}
 if [ ! -e mill-standalone ]; then
-  curl -Lo mill-standalone http://files.sireum.org/mill-standalone
+  curl -c /dev/null -Lo mill-standalone http://files.sireum.org/mill-standalone
   chmod +x mill-standalone
 fi
 if [ ! -f sireum ]; then
-  curl -Lo sireum http://files.sireum.org/sireum
+  curl -c /dev/null -Lo sireum http://files.sireum.org/sireum
   chmod +x sireum
 fi
 if [ ! -e versions.properties ]; then
