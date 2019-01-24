@@ -1,7 +1,5 @@
 jdk:
   - oraclejdk8
-before_install:
-  - ./test.sh
 install:
   - ./mill-standalone all alir.shared.m2 alir.js.m2
   - mkdir -p ~/.m2/repository
