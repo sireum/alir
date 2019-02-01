@@ -91,7 +91,7 @@ object CallGraph {
           for (m <- info.methods.values) {
             r = buildMethod(r, m.ast)
           }
-        case info: TypeInfo.AbstractDatatype =>
+        case info: TypeInfo.Adt =>
           buildConstructor(info.constructorResOpt, info.ast.stmts)
           for (m <- info.methods.values) {
             r = buildMethod(r, m.ast)
@@ -138,14 +138,14 @@ object CallGraph {
         HashMap[String, Info.Var]
       ) = info match {
         case info: TypeInfo.Sig => (info.refinements, info.methods, HashMap.empty)
-        case info: TypeInfo.AbstractDatatype => (info.refinements, info.methods, info.vars)
+        case info: TypeInfo.Adt => (info.refinements, info.methods, info.vars)
         case _ => (HashMap.empty, HashMap.empty, HashMap.empty)
       }
       for (p <- refinements.entries) {
         val (id, sup) = p
         val supMResOpt: AST.ResolvedInfo = th.typeMap.get(sup.ids).get match {
           case info: TypeInfo.Sig => info.methods.get(id).get.resOpt.get
-          case info: TypeInfo.AbstractDatatype => info.methods.get(id).get.resOpt.get
+          case info: TypeInfo.Adt => info.methods.get(id).get.resOpt.get
           case _ => halt("Infeasible")
         }
         val supMRes: Node = supMResOpt match {
