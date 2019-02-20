@@ -42,7 +42,6 @@ if not defined SIREUM_PROVIDED_JAVA set PATH="%~dp0win\java\bin":%PATH%
 "%~dp0sireum.bat" slang run -s "%0" %*
 exit /B %errorlevel%
 ::!#
-::!#
 // #Sireum
 import org.sireum._
 
