@@ -135,11 +135,11 @@ object CallGraph {
       val (refinements, methods, vars): (
         HashMap[String, TypeInfo.Name],
         HashMap[String, Info.Method],
-        HashMap[String, Info.Var]
+        HashSMap[String, Info.Var]
       ) = info match {
-        case info: TypeInfo.Sig => (info.refinements, info.methods, HashMap.empty)
+        case info: TypeInfo.Sig => (info.refinements, info.methods, HashSMap.empty)
         case info: TypeInfo.Adt => (info.refinements, info.methods, info.vars)
-        case _ => (HashMap.empty, HashMap.empty, HashMap.empty)
+        case _ => (HashMap.empty, HashMap.empty, HashSMap.empty)
       }
       for (p <- refinements.entries) {
         val (id, sup) = p
