@@ -111,7 +111,7 @@ def compile(): Unit = {
     }
     tipe()
     println("Compiling ...")
-    Os.proc(ISZ(mill.string, "all", "alir.shared.tests.compile")).at(home).console.runCheck()
+    mill.call(ISZ("all", "alir.shared.tests.compile")).at(home).console.runCheck()
     println()
   }
 }
@@ -120,7 +120,7 @@ def compile(): Unit = {
 def test(): Unit = {
   compile()
   println("Running shared tests ...")
-  Os.proc(ISZ(mill.string, "alir.shared.tests")).at(home).console.runCheck()
+  mill.call(ISZ("alir.shared.tests")).at(home).console.runCheck()
   println()
 }
 
@@ -128,14 +128,14 @@ def test(): Unit = {
 def testJs(): Unit = {
   compile()
   println("Running js tests ...")
-  Os.proc(ISZ(mill.string, "alir.js.tests")).at(home).console.runCheck()
+  mill.call(ISZ("alir.js.tests")).at(home).console.runCheck()
   println()
 }
 
 
 def jitpack(): Unit = {
   println("Triggering jitpack ...")
-  val r = Os.proc(ISZ(mill.string, "jitPack", "--owner", "sireum", "--repo", "alir")).at(home).console.run()
+  val r = mill.call(ISZ("jitPack", "--owner", "sireum", "--repo", "alir")).at(home).console.run()
   r match {
     case r: Os.Proc.Result.Normal =>
       println(r.out)
