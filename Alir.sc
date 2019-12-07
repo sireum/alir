@@ -25,10 +25,9 @@
 
 import mill._
 import mill.scalalib._
-import ammonite.ops.up
 import org.sireum.mill.SireumModule._
 
-trait Module extends CrossSharedJsJitPack {
+trait Module extends CrossJvmJsJitPack {
 
   final override def subUrl: String = "alir"
 
