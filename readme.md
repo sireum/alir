@@ -1,6 +1,6 @@
 # Sireum Flow Analysis
 
-[![Actions Status](https://github.com/sireum/alir/workflows/CI/badge.svg)](https://github.com/sireum/alir/actions) [![shippable](https://api.shippable.com/projects/5ac95dc3b9854506004da919/badge?branch=master)](https://app.shippable.com/github/sireum/alir/dashboard)
+[![Actions Status](https://github.com/sireum/alir/workflows/CI/badge.svg)](https://github.com/sireum/alir/actions)
 
 
 ## Testing
