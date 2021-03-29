@@ -65,9 +65,9 @@ trait Module extends CrossJvmJsJitPack {
     else Agg(jpLatest(isCross = true, "sireum", "slang", "frontend"))
 
   final override def deps =
-    if (isSourceDep) Seq(frontEndObject) else Seq()
+    if (isSourceDep) Seq(tipeObject) else Seq()
 
-  def frontEndObject: CrossJvmJsPublish
+  def tipeObject: CrossJvmJsPublish
 
   def testObject: CrossJvmJsPublish
 }

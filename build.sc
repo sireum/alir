@@ -71,7 +71,7 @@ object slang extends mill.Module {
 object alir extends Alir.Module with runtime.testProvider {
 
   final override def millSourcePath = super.millSourcePath / up
-  final override def frontEndObject = slang.frontend
+  final override def tipeObject = slang.tipe
 
 }
 
