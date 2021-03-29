@@ -39,11 +39,11 @@ val homeDir = Os.slashDir.up.canon
 
 val alirShared = moduleShared(
   id = alir,
-  baseDir = homeDir / alir,
+  baseDir = homeDir,
   sharedDeps = ISZ(tipe),
   sharedIvyDeps = ISZ()
 )
 
 val project = Project.empty + alirShared
 
-println(JSON.fromProject(project, T))
+projectCli(Os.cliArgs, project)
