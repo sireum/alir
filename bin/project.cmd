@@ -26,11 +26,17 @@ val alir = "alir"
 
 val homeDir = Os.slashDir.up.canon
 
-val alirShared = moduleShared(
+val alirShared = moduleSharedPub(
   id = alir,
   baseDir = homeDir,
   sharedDeps = ISZ(tipe),
-  sharedIvyDeps = ISZ()
+  sharedIvyDeps = ISZ(),
+  pubOpt = pub(
+    desc = "Alir Flow Framework",
+    url = "github.com/sireum/alir",
+    licenses = org.sireum.project.ProjectUtil.bsd2,
+    devs = ISZ(robby)
+  )
 )
 
 val project = Project.empty + alirShared
