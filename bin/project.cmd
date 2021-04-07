@@ -34,7 +34,7 @@ val alirShared = moduleSharedPub(
   pubOpt = pub(
     desc = "Alir Flow Framework",
     url = "github.com/sireum/alir",
-    licenses = org.sireum.project.ProjectUtil.bsd2,
+    licenses = bsd2,
     devs = ISZ(robby)
   )
 )
