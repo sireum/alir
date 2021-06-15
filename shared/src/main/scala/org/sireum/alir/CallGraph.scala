@@ -133,13 +133,13 @@ object CallGraph {
     var r = Poset.empty[Node]
     for (info <- th.typeMap.values) {
       val (refinements, methods, vars): (
-        HashMap[String, TypeInfo.Name],
-        HashMap[String, Info.Method],
+        HashSMap[String, TypeInfo.Name],
+        HashSMap[String, Info.Method],
         HashSMap[String, Info.Var]
       ) = info match {
         case info: TypeInfo.Sig => (info.refinements, info.methods, HashSMap.empty)
         case info: TypeInfo.Adt => (info.refinements, info.methods, info.vars)
-        case _ => (HashMap.empty, HashMap.empty, HashSMap.empty)
+        case _ => (HashSMap.empty, HashSMap.empty, HashSMap.empty)
       }
       for (p <- refinements.entries) {
         val (id, sup) = p
