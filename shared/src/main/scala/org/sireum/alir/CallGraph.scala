@@ -36,11 +36,11 @@ object CallGraph {
 
   type Edge = String
 
-  @datatype class Node(isInObject: B, isVar: B, owner: QName, id: String)
+  @datatype class Node(val isInObject: B, val isVar: B, val owner: QName, val id: String)
 
   type Type = Graph[Node, Edge]
 
-  @record class Builder(var g: Type, context: Node) extends AST.MTransformer {
+  @record class Builder(var g: Type, val context: Node) extends AST.MTransformer {
 
     override def preStmtMethod(o: AST.Stmt.Method): AST.MTransformer.PreResult[AST.Stmt] = {
       g = buildMethod(g, o)
