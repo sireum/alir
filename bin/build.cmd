@@ -65,19 +65,9 @@ if (Os.cliArgs.isEmpty) {
 val homeBin = Os.slashDir
 val home = homeBin.up
 val sireumJar = homeBin / "sireum.jar"
-val mill = homeBin / "mill.bat"
 var didTipe = F
 var didCompile = F
-
-
-def downloadMill(): Unit = {
-  if (!mill.exists) {
-    println("Downloading mill ...")
-    mill.downloadFrom("https://github.com/sireum/rolling/releases/download/mill/standalone")
-    mill.chmod("+x")
-    println()
-  }
-}
+val projectStandalone = home / "bin" / "project-standalone.cmd"
 
 
 def getBranch(path: Os.Path): String = {
@@ -117,7 +107,7 @@ def compile(): Unit = {
     didCompile = T
     tipe()
     println("Compiling ...")
-    mill.call(ISZ("all", "alir.shared.tests.compile")).at(home).console.runCheck()
+    proc"java -jar $sireumJar proyek compile --project $projectStandalone $home".console.echo.runCheck()
     println()
   }
 }
@@ -126,20 +116,11 @@ def compile(): Unit = {
 def test(): Unit = {
   compile()
   println("Running shared tests ...")
-  mill.call(ISZ("alir.shared.tests")).at(home).console.runCheck()
+  proc"java -jar $sireumJar proyek test --project $projectStandalone $home org.sireum.alir".
+    console.echo.runCheck()
   println()
 }
 
-
-def testJs(): Unit = {
-  compile()
-  println("Running js tests ...")
-  mill.call(ISZ("alir.js.tests")).at(home).console.runCheck()
-  println()
-}
-
-
-downloadMill()
 
 for (m <- ISZ("runtime", "slang")) {
   clone(m)
@@ -149,7 +130,6 @@ for (i <- 0 until Os.cliArgs.size) {
   Os.cliArgs(i) match {
     case string"compile" => compile()
     case string"test" => test()
-    case string"test-js" => testJs()
     case cmd =>
       usage()
       eprintln(s"Unrecognized command: $cmd")
