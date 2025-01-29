@@ -185,7 +185,6 @@ import org.sireum.alir.TypeSpecializer._
           case _: AST.Stmt.For => T
           case _: AST.Stmt.If => T
           case _: AST.Stmt.Block => T
-          case _: AST.Stmt.DoWhile => T
           case _: AST.Stmt.Assign => T
           case _: AST.Stmt.Expr => T
           case _: AST.Stmt.Var => T
