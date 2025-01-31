@@ -42,6 +42,8 @@ object TypeSpecializer {
 
     @datatype class App(val name: QName) extends EntryPoint
 
+    @datatype class Method(val name: QName) extends EntryPoint
+
     @datatype class Worksheet(val program: AST.TopUnit.Program) extends EntryPoint
 
   }
@@ -177,6 +179,18 @@ import org.sireum.alir.TypeSpecializer._
       }
     }
 
+    def entryMethod(ep: EntryPoint.Method): Unit = {
+      th.nameMap.get(ep.name) match {
+        case Some(info: Info.Method) =>
+          if (info.ast.sig.typeParams.nonEmpty) {
+            reporter.error(None(), tsKind, st"Entry object method point '${(ep.name, ".")}' cannot have type parameters.".render)
+            return
+          }
+          workList = workList :+ Method(None(), info)
+        case _ => reporter.error(None(), tsKind, st"Could not find object method '${(ep.name, ".")}'.".render)
+      }
+    }
+
     def entryWorksheet(ep: EntryPoint.Worksheet): Unit = {
       for (stmt <- ep.program.body.stmts) {
         val shouldTransform: B = stmt match {
@@ -211,6 +225,7 @@ import org.sireum.alir.TypeSpecializer._
       for (ep <- eps) {
         ep match {
           case ep: EntryPoint.App => entryApp(ep)
+          case ep: EntryPoint.Method => entryMethod(ep)
           case ep: EntryPoint.Worksheet => entryWorksheet(ep)
         }
       }
