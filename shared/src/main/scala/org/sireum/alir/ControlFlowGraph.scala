@@ -15,6 +15,7 @@ object ControlFlowGraph {
     g = g * -1
     for (b <- body.blocks) {
       b.jump match {
+        case _: AST.IR.Jump.Halt => g = g + b.label ~> exitNode
         case _: AST.IR.Jump.Return => g = g + b.label ~> exitNode
         case _ =>
           for (target <- b.jump.targets) {
