@@ -947,6 +947,7 @@ import org.sireum.alir.TypeSpecializer._
   override def transformStmt(o: AST.Stmt): MOption[AST.Stmt] = {
     o match {
       case _: AST.Stmt.Spec => return MNone()
+      case o: AST.Stmt.Var if o.isSpec => return MNone()
       case _ => return super.transformStmt(o)
     }
   }
