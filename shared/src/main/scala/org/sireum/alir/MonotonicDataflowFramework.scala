@@ -19,6 +19,13 @@ object MonotonicDataflowFramework {
     def compute(body: AST.IR.Body.Basic,
                 entrySet: MBox[HashSMap[Z, ISZ[HashSSet[Fact]]]],
                 exitSet: MBox[HashSMap[Z, ISZ[HashSSet[Fact]]]]): Unit = {
+      if (body.blocks.isEmpty) {
+        val m = HashSMap.empty[Z, ISZ[HashSSet[Fact]]] + ControlFlowGraph.exitNode ~> ISZ(iota)
+        entrySet.value = m
+        exitSet.value = m
+        return
+      }
+
       var entryS = entrySet.value
       var exitS = exitSet.value
 
@@ -31,8 +38,8 @@ object MonotonicDataflowFramework {
         entryS = m
         exitS = m
         if (isForward) {
-          val startNode = body.blocks(0).label
-          entryS = entryS + startNode ~> entryS.get(startNode).get(0 ~> iota)
+          val is = entryS.get(body.blocks(0).label).get
+          entryS = entryS + body.blocks(0).label ~> is(0 ~> iota)
         } else {
           val is = exitS.get(ControlFlowGraph.exitNode).get
           exitS = exitS + ControlFlowGraph.exitNode ~> is((is.size - 1) ~> iota)
@@ -58,9 +65,14 @@ object MonotonicDataflowFramework {
 
       def forwardBlock(b: AST.IR.BasicBlock): B = {
         val edges = cfg.incoming(b.label)
-        var facts = getExit(edges(0).source)
-        for (i <- 1 until edges.size) {
-          facts = f(facts, getExit(edges(i).source))
+        var facts: HashSSet[Fact] = if (edges.isEmpty) {
+          entryS.get(b.label).get(0)
+        } else {
+          var r = getExit(edges(0).source)
+          for (i <- 1 until edges.size) {
+            r = f(r, getExit(edges(i).source))
+          }
+          r
         }
         val entries = entryS.get(b.label).get.toMS
         val exits = exitS.get(b.label).get.toMS
