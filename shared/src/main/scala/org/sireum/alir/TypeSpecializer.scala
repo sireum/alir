@@ -880,7 +880,7 @@ import org.sireum.alir.TypeSpecializer._
                 th.typeMap.get(t.ids).get match {
                   case ti: TypeInfo.Adt if ti.methods.contains("string") =>
                     val m = AST.ResolvedInfo.Method(F, AST.MethodMode.Method, ISZ(), t.ids, "string", ISZ(),
-                      Some(AST.Typed.Fun(AST.Purity.Impure,T, ISZ(), AST.Typed.string)), ISZ(), ISZ())
+                      Some(AST.Typed.Fun(AST.Purity.Impure,T, ISZ(), AST.Typed.string)), ISZ(), ISZ(), None())
                     addResolvedMethod(o.posOpt, m, Some(t), o.typedOpt.get)
                   case _ =>
                 }
