@@ -105,7 +105,7 @@ object TypeSpecializer {
   val atExitType: AST.Typed.Fun = AST.Typed.Fun(AST.Purity.Impure,F, ISZ(), AST.Typed.unit)
 
   val mainTpe: AST.Typed.Fun =
-    AST.Typed.Fun(AST.Purity.Impure,F, ISZ(AST.Typed.Name(AST.Typed.isName, ISZ(AST.Typed.z, AST.Typed.string))), AST.Typed.z)
+    AST.Typed.Fun(AST.Purity.Impure,F, ISZ(AST.Typed.Name(AST.Typed.isName, None(), ISZ(AST.Typed.z, AST.Typed.string))), AST.Typed.z)
 
   val preResultExp: AST.MTransformer.PreResult[AST.Exp] = AST.MTransformer.PreResultExpInvoke(continu = F)
 
@@ -580,7 +580,7 @@ import org.sireum.alir.TypeSpecializer._
         case AST.MethodMode.Select =>
           val mFun = m.tpeOpt.get
           Some(
-            AST.Typed.Name(if (m.id == string"IS") AST.Typed.isName else AST.Typed.msName, ISZ(mFun.args(0), mFun.ret))
+            AST.Typed.Name(if (m.id == string"IS") AST.Typed.isName else AST.Typed.msName, None(), ISZ(mFun.args(0), mFun.ret))
           )
         case AST.MethodMode.Store => Some(expType.asInstanceOf[AST.Typed.Name])
       }
@@ -664,28 +664,28 @@ import org.sireum.alir.TypeSpecializer._
             case AST.Typed.optionName =>
               o.args(0) match {
                 case AST.Typed.b =>
-                  addType(AST.Typed.Name(AST.Typed.someName, ISZ(AST.Typed.b)))
-                  addType(AST.Typed.Name(AST.Typed.noneName, ISZ(AST.Typed.b)))
+                  addType(AST.Typed.Name(AST.Typed.someName, None(), ISZ(AST.Typed.b)))
+                  addType(AST.Typed.Name(AST.Typed.noneName, None(), ISZ(AST.Typed.b)))
                 case AST.Typed.c =>
-                  addType(AST.Typed.Name(AST.Typed.someName, ISZ(AST.Typed.c)))
-                  addType(AST.Typed.Name(AST.Typed.noneName, ISZ(AST.Typed.c)))
+                  addType(AST.Typed.Name(AST.Typed.someName, None(), ISZ(AST.Typed.c)))
+                  addType(AST.Typed.Name(AST.Typed.noneName, None(), ISZ(AST.Typed.c)))
                 case AST.Typed.z =>
-                  addType(AST.Typed.Name(AST.Typed.someName, ISZ(AST.Typed.z)))
-                  addType(AST.Typed.Name(AST.Typed.noneName, ISZ(AST.Typed.z)))
+                  addType(AST.Typed.Name(AST.Typed.someName, None(), ISZ(AST.Typed.z)))
+                  addType(AST.Typed.Name(AST.Typed.noneName, None(), ISZ(AST.Typed.z)))
                 case AST.Typed.f32 =>
-                  addType(AST.Typed.Name(AST.Typed.someName, ISZ(AST.Typed.f32)))
-                  addType(AST.Typed.Name(AST.Typed.noneName, ISZ(AST.Typed.f32)))
+                  addType(AST.Typed.Name(AST.Typed.someName, None(), ISZ(AST.Typed.f32)))
+                  addType(AST.Typed.Name(AST.Typed.noneName, None(), ISZ(AST.Typed.f32)))
                 case AST.Typed.f64 =>
-                  addType(AST.Typed.Name(AST.Typed.someName, ISZ(AST.Typed.f64)))
-                  addType(AST.Typed.Name(AST.Typed.noneName, ISZ(AST.Typed.f64)))
+                  addType(AST.Typed.Name(AST.Typed.someName, None(), ISZ(AST.Typed.f64)))
+                  addType(AST.Typed.Name(AST.Typed.noneName, None(), ISZ(AST.Typed.f64)))
                 case AST.Typed.r =>
-                  addType(AST.Typed.Name(AST.Typed.someName, ISZ(AST.Typed.r)))
-                  addType(AST.Typed.Name(AST.Typed.noneName, ISZ(AST.Typed.r)))
+                  addType(AST.Typed.Name(AST.Typed.someName, None(), ISZ(AST.Typed.r)))
+                  addType(AST.Typed.Name(AST.Typed.noneName, None(), ISZ(AST.Typed.r)))
                 case _ =>
                   th.typeMap.get(o.ids) match {
                     case Some(_: TypeInfo.SubZ) =>
-                      addType(AST.Typed.Name(AST.Typed.someName, ISZ(AST.Typed.Name(o.ids, ISZ()))))
-                      addType(AST.Typed.Name(AST.Typed.noneName, ISZ(AST.Typed.Name(o.ids, ISZ()))))
+                      addType(AST.Typed.Name(AST.Typed.someName, AST.Typed.noRType, ISZ(AST.Typed.Name(o.ids, AST.Typed.noRType, ISZ()))))
+                      addType(AST.Typed.Name(AST.Typed.noneName, AST.Typed.noRType, ISZ(AST.Typed.Name(o.ids, AST.Typed.noRType, ISZ()))))
                     case _ =>
                   }
               }
@@ -737,8 +737,8 @@ import org.sireum.alir.TypeSpecializer._
 
   override def preResolvedAttr(o: AST.ResolvedAttr): AST.MTransformer.PreResult[AST.ResolvedAttr] = {
     def addSomeNone(t: AST.Typed): Unit = {
-      addType(AST.Typed.Name(AST.Typed.someName, ISZ(t)))
-      addType(AST.Typed.Name(AST.Typed.noneName, ISZ(t)))
+      addType(AST.Typed.Name(AST.Typed.someName, None(), ISZ(t)))
+      addType(AST.Typed.Name(AST.Typed.noneName, None(), ISZ(t)))
     }
     o.resOpt.get match {
       case res: AST.ResolvedInfo.Var =>
@@ -763,7 +763,7 @@ import org.sireum.alir.TypeSpecializer._
       case res: AST.ResolvedInfo.Method =>
         def addEnumOpt(): Unit = {
           o.typedOpt.get match {
-            case AST.Typed.Name(AST.Typed.optionName, args) => addSomeNone(args(0))
+            case AST.Typed.Name(AST.Typed.optionName, _, args) => addSomeNone(args(0))
             case _ =>
           }
         }
