@@ -30,19 +30,22 @@ object MonotonicDataflowFramework {
       var exitS = exitSet.value
 
       def initialize(): Unit = {
-        var m = HashSMap.empty[Z, ISZ[HashSSet[Fact]]]
+        val entries = Buffer.create[(Z, ISZ[HashSSet[Fact]])]()
         for (b <- body.blocks) {
-          m = m + b.label ~> ISZ.create(b.grounds.size + 1, init)
+          entries.append(b.label ~> ISZ.create(b.grounds.size + 1, init))
         }
-        m = m + ControlFlowGraph.exitNode ~> ISZ(init)
-        entryS = m
-        exitS = m
+        entries.append(ControlFlowGraph.exitNode ~> ISZ(init))
+        val initial = HashSMap.empty[Z, ISZ[HashSSet[Fact]]] ++ entries.toIS
+        entryS = initial
+        exitS = initial
         if (isForward) {
           val is = entryS.get(body.blocks(0).label).get
           entryS = entryS + body.blocks(0).label ~> is(0 ~> iota)
         } else {
-          val is = exitS.get(ControlFlowGraph.exitNode).get
-          exitS = exitS + ControlFlowGraph.exitNode ~> is((is.size - 1) ~> iota)
+          val values = exitS.get(ControlFlowGraph.exitNode).get
+          val boundary = values((values.size - 1) ~> iota)
+          entryS = entryS + ControlFlowGraph.exitNode ~> boundary
+          exitS = exitS + ControlFlowGraph.exitNode ~> boundary
         }
       }
 
@@ -61,40 +64,45 @@ object MonotonicDataflowFramework {
         return s(0)
       }
 
-      val getExit: Z => HashSSet[Fact] = if (isForward) getExitForward _ else getExitBackward _
-
       def forwardBlock(b: AST.IR.BasicBlock): B = {
         val edges = cfg.incoming(b.label)
-        var facts: HashSSet[Fact] = if (edges.isEmpty) {
-          entryS.get(b.label).get(0)
-        } else {
-          var r = getExit(edges(0).source)
-          for (i <- 1 until edges.size) {
-            r = f(r, getExit(edges(i).source))
+        val isEntryBlock = b.label == body.blocks(0).label
+        var facts: HashSSet[Fact] = if (isEntryBlock) iota else HashSSet.empty[Fact]
+        if (edges.isEmpty) {
+          if (!isEntryBlock) {
+            facts = entryS.get(b.label).get(0)
           }
-          r
+        } else {
+          var start: Z = 0
+          if (!isEntryBlock) {
+            facts = getExitForward(edges(0).source)
+            start = 1
+          }
+          for (i <- start until edges.size) {
+            facts = f(facts, getExitForward(edges(i).source))
+          }
         }
         val entries = entryS.get(b.label).get.toMS
         val exits = exitS.get(b.label).get.toMS
+        var changed = !facts.isEqual(entries(0))
         entries(0) = facts
 
-        var changed = F
         for (i <- 0 until b.grounds.size) {
           val g = b.grounds(i)
           val newExit = (entries(i) -- killGround(g).elements).union(genGround(g))
-          if (newExit.size != exits(i).size) {
+          if (!newExit.isEqual(exits(i))) {
             changed = T
-            exits(i) = newExit
-            entries(i + 1) = newExit
           }
+          exits(i) = newExit
+          entries(i + 1) = newExit
         }
         {
-          val i = b.grounds.size
-          val newExit = (entries(i) -- killJump(b.jump).elements).union(genJump(b.jump))
-          if (newExit.size != exits(i).size) {
+          val jumpIndex = b.grounds.size
+          val newExit = (entries(jumpIndex) -- killJump(b.jump).elements).union(genJump(b.jump))
+          if (!newExit.isEqual(exits(jumpIndex))) {
             changed = T
-            exits(i) = newExit
           }
+          exits(jumpIndex) = newExit
         }
         if (changed) {
           entryS = entryS + b.label ~> entries.toIS
@@ -105,37 +113,36 @@ object MonotonicDataflowFramework {
 
       def backwardBlock(b: AST.IR.BasicBlock): B = {
         val edges = cfg.outgoing(b.label)
-        var facts = getExit(edges(0).dest)
+        var facts = getExitBackward(edges(0).dest)
         for (i <- 1 until edges.size) {
-          facts = f(facts, getExit(edges(i).dest))
+          facts = f(facts, getExitBackward(edges(i).dest))
         }
         val entries = entryS.get(b.label).get.toMS
         val exits = exitS.get(b.label).get.toMS
-        exits(b.grounds.size) = facts
-
-        var changed = F
+        val jumpIndex = b.grounds.size
+        var changed = !facts.isEqual(exits(jumpIndex))
+        exits(jumpIndex) = facts
 
         {
-          val i = b.grounds.size
-          val newEntry = (exits(i) -- killJump(b.jump).elements).union(genJump(b.jump))
-          if (newEntry.size != entries(i).size) {
+          val newEntry = (exits(jumpIndex) -- killJump(b.jump).elements).union(genJump(b.jump))
+          if (!newEntry.isEqual(entries(jumpIndex))) {
             changed = T
-            entries(i) = newEntry
-            if (i > 0) {
-              exits(i - 1) = newEntry
-            }
+          }
+          entries(jumpIndex) = newEntry
+          if (jumpIndex > 0) {
+            exits(jumpIndex - 1) = newEntry
           }
         }
 
         for (i <- b.grounds.size - 1 to 0 by -1) {
           val g = b.grounds(i)
           val newEntry = (exits(i) -- killGround(g).elements).union(genGround(g))
-          if (newEntry.size != entries(i).size) {
+          if (!newEntry.isEqual(entries(i))) {
             changed = T
-            entries(i) = newEntry
-            if (i > 0) {
-              exits(i - 1) = newEntry
-            }
+          }
+          entries(i) = newEntry
+          if (i > 0) {
+            exits(i - 1) = newEntry
           }
         }
 
