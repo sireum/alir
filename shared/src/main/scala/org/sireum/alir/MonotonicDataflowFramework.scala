@@ -9,7 +9,7 @@ object MonotonicDataflowFramework {
     @pure def cfg: Graph[Z, Unit]
     @pure def isForward: B
     @pure def isLUB: B
-    @pure def genGround(g: AST.IR.Stmt.Ground): HashSSet[Fact]
+    @pure def genGround(g: AST.IR.Stmt.Ground, blockLabel: Z, groundIndex: Z): HashSSet[Fact]
     @pure def killGround(g: AST.IR.Stmt.Ground): HashSSet[Fact]
     @pure def genJump(j: AST.IR.Jump): HashSSet[Fact]
     @pure def killJump(j: AST.IR.Jump): HashSSet[Fact]
@@ -89,7 +89,7 @@ object MonotonicDataflowFramework {
 
         for (i <- 0 until b.grounds.size) {
           val g = b.grounds(i)
-          val newExit = (entries(i) -- killGround(g).elements).union(genGround(g))
+          val newExit = (entries(i) -- killGround(g).elements).union(genGround(g, b.label, i))
           if (!newExit.isEqual(exits(i))) {
             changed = T
           }
@@ -136,7 +136,7 @@ object MonotonicDataflowFramework {
 
         for (i <- b.grounds.size - 1 to 0 by -1) {
           val g = b.grounds(i)
-          val newEntry = (exits(i) -- killGround(g).elements).union(genGround(g))
+          val newEntry = (exits(i) -- killGround(g).elements).union(genGround(g, b.label, i))
           if (!newEntry.isEqual(entries(i))) {
             changed = T
           }
